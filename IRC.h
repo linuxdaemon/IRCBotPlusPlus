@@ -7,41 +7,41 @@
 #include "PracticalSocket.h"
 using json = nlohmann::json;
 
-using namespace std;
+//using namespace std;
 
 namespace IRC {
     struct ParsedLine {
-        string prefix = "";
-        string cmd = "";
-        vector<string> params;
+        std::string prefix = "";
+        std::string cmd = "";
+        std::vector<std::string> params;
     };
 
-    ParsedLine parse(string s);
+    ParsedLine parse(std::string s);
 
     class Connection {
     public:
-        Connection(string _host, unsigned short _port, json config);
+        Connection(std::string _host, unsigned short _port, json config);
 
         ~Connection();
 
-        void setNick(string _nick);
-        void setUser(string _user);
-        void setRealname(string _realname);
+        void setNick(std::string _nick);
+        void setUser(std::string _user);
+        void setRealname(std::string _realname);
         void useNickServ(bool b);
-        void setNickServUser(string ns_user);
-        void setNickServPass(string pass);
+        void setNickServUser(std::string ns_user);
+        void setNickServPass(std::string pass);
 
         void connect();
 
-        void shutdown(string s);
+        void shutdown(std::string s);
 
         void shutdown();
 
-        void send(string s);
+        void send(std::string s);
 
-        void cmd(string cmd, vector<string> *args);
+        void cmd(std::string cmd, std::vector<std::string> *args);
 
-        void msg(string target, string msg);
+        void msg(std::string target, std::string msg);
 
         void readLoop();
 
@@ -53,16 +53,16 @@ namespace IRC {
 
     private:
         const int RCVBUFSIZE = 1024;
-        string host;
+        std::string host;
         unsigned short port;
-        string inputBuffer;
+        std::string inputBuffer;
 
-        string nick;
-        string user;
-        string realname;
+        std::string nick;
+        std::string user;
+        std::string realname;
         bool _useNickServ;
-        string ns_user;
-        string ns_pass;
+        std::string ns_user;
+        std::string ns_pass;
         json config;
     };
 }

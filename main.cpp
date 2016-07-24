@@ -1,18 +1,21 @@
-#include "PracticalSocket.h"  // For SocketException
-#include "IRC.h"
 #include <fstream>
 #include <thread>
+#include "PracticalSocket.h"
+#include "IRC.h"
 
-using namespace std;
 using json = nlohmann::json;
+
 int main(int argc, char *argv[]) {
     if (argc != 2)
+    {
+        std::cerr << "Invalid number of args" << std::endl;
         exit(1);
+    }
     json config;
 
-    string cfg;
-    string line;
-    ifstream f(argv[1]);
+    std::string cfg ("");
+    std::string line;
+    std::ifstream f(argv[1]);
     if (f.is_open()) {
         while (getline(f, line)) {
             cfg += line;
@@ -20,7 +23,7 @@ int main(int argc, char *argv[]) {
         f.close();
     }
     else {
-        cerr << argv[1] << " is not open" << endl;
+        std::cerr << argv[1] << " is not open" << std::endl;
         exit(1);
     }
 
@@ -30,17 +33,17 @@ int main(int argc, char *argv[]) {
     try {
         // Establish connection with the server
         IRC::Connection conn(server["connection"]["host"], server["connection"]["port"], server);
-        cout << "Connecting" << endl;
+        std::cout << "Connecting" << std::endl;
         conn.connect();
-        cout << "connected " << conn.socket->getLocalAddress() << endl;
+        std::cout << "connected " << conn.socket->getLocalAddress() << std::endl;
         conn.readLoop();
 
-        cout << endl;
+        std::cout << std::endl;
 
         // Destructor closes the socket
 
     } catch (SocketException &e) {
-        cerr << e.what() << endl;
+        std::cerr << e.what() << std::endl;
         exit(1);
     }
 

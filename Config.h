@@ -4,11 +4,10 @@
 #include <fstream>
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
-using namespace std;
 
 class Config {
 public:
-    Config(string filename);
+    Config(std::string filename);
 
 
 private:

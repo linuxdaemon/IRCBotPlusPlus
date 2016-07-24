@@ -38,7 +38,7 @@ typedef void raw_type;       // Type used for raw data on this platform
 #include <iostream>
 #include <cassert>
 
-using namespace std;
+//using namespace std;
 
 #ifdef WIN32
 static bool initialized = false;
@@ -46,7 +46,7 @@ static bool initialized = false;
 
 // SocketException Code
 
-SocketException::SocketException(const string &message, bool inclSysMsg)
+SocketException::SocketException(const std::string &message, bool inclSysMsg)
 throw() : userMessage(message) {
     if (inclSysMsg) {
         userMessage.append(": ");
@@ -62,19 +62,19 @@ const char *SocketException::what() const throw() {
 }
 
 // Function to fill in address structure given an address and port
-static void fillAddr(const string &address, unsigned short port, addrinfo **addr) {
+static void fillAddr(const std::string &address, unsigned short port, addrinfo **addr) {
     struct addrinfo hints;
     memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_UNSPEC; // use AF_INET6 to force IPv6
     hints.ai_socktype = SOCK_STREAM;
-    stringstream p;
+    std::stringstream p;
     p << port;
     int rv;
     if ((rv = getaddrinfo(address.c_str(), p.str().c_str(), &hints, addr)) != 0) {
-        cout << gai_strerror(rv) << endl;
+        std::cout << gai_strerror(rv) << std::endl;
         throw SocketException("Failed to resolve name (gethostbyname())");
     }
-    cout << "Address filled" << endl;
+    std::cout << "Address filled" << std::endl;
     //freeaddrinfo(&hints);
 }
 
@@ -113,7 +113,7 @@ Socket::~Socket() {
     sockDesc = -1;
 }
 
-string Socket::getLocalAddress() throw(SocketException) {
+std::string Socket::getLocalAddress() throw(SocketException) {
     sockaddr_in addr;
     unsigned int addr_len = sizeof(addr);
 
@@ -146,7 +146,7 @@ void Socket::setLocalPort(unsigned short localPort) throw(SocketException) {
     }
 }
 
-void Socket::setLocalAddressAndPort(const string &localAddress,
+void Socket::setLocalAddressAndPort(const std::string &localAddress,
                                     unsigned short localPort) throw(SocketException) {
     // Get the address of the requested host
     addrinfo *localAddr;
@@ -166,8 +166,8 @@ void Socket::cleanUp() throw(SocketException) {
 #endif
 }
 
-unsigned short Socket::resolveService(const string &service,
-                                      const string &protocol) {
+unsigned short Socket::resolveService(const std::string &service,
+                                      const std::string &protocol) {
     struct servent *serv;        /* Structure containing service information */
 
     if ((serv = getservbyname(service.c_str(), protocol.c_str())) == NULL)
@@ -185,30 +185,26 @@ throw(SocketException) : Socket(type, protocol) {
 CommunicatingSocket::CommunicatingSocket(int newConnSD) : Socket(newConnSD) {
 }
 
-void CommunicatingSocket::connect(const string &foreignAddress,
+void CommunicatingSocket::connect(const std::string &foreignAddress,
                                   unsigned short foreignPort) throw(SocketException) {
     // Get the address of the requested host
     struct addrinfo *servinfo, *p;
     fillAddr(foreignAddress, foreignPort, &servinfo);
     for (p = servinfo; p != NULL; p = p->ai_next) {
-        cout << "Results: " << endl;
         if ((sockDesc = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
-            cerr << "Socket" << endl;
+            std::cerr << "Socket" << std::endl;
             continue;
         }
 
         if (::connect(sockDesc, p->ai_addr, p->ai_addrlen) == -1) {
-            cout << "Error123" << endl;
-            cerr << "Error connecting" << endl;
+            std::cerr << "Error connecting" << std::endl;
+            close(sockDesc);
             // throw SocketException("Connect failed (connect())", true);
             continue;
         }
         break;
     }
-    cout << "Freeing addr" << endl;
-    //freeaddrinfo(&hints);
     freeaddrinfo(servinfo);
-    //freeaddrinfo(p);
 }
 
 void CommunicatingSocket::send(const void *buffer, int bufferLen)
@@ -228,7 +224,7 @@ throw(SocketException) {
     return rtn;
 }
 
-string CommunicatingSocket::getForeignAddress()
+std::string CommunicatingSocket::getForeignAddress()
 throw(SocketException) {
     sockaddr_in addr;
     unsigned int addr_len = sizeof(addr);
@@ -256,7 +252,7 @@ throw(SocketException) : CommunicatingSocket(SOCK_STREAM,
                                              IPPROTO_TCP) {
 }
 
-TCPSocket::TCPSocket(const string &foreignAddress, unsigned short foreignPort)
+TCPSocket::TCPSocket(const std::string &foreignAddress, unsigned short foreignPort)
 throw(SocketException) : CommunicatingSocket(SOCK_STREAM, IPPROTO_TCP) {
     connect(foreignAddress, foreignPort);
 }
@@ -272,7 +268,7 @@ throw(SocketException) : Socket(SOCK_STREAM, IPPROTO_TCP) {
     setListen(queueLen);
 }
 
-TCPServerSocket::TCPServerSocket(const string &localAddress,
+TCPServerSocket::TCPServerSocket(const std::string &localAddress,
                                  unsigned short localPort, int queueLen)
 throw(SocketException) : Socket(SOCK_STREAM, IPPROTO_TCP) {
     setLocalAddressAndPort(localAddress, localPort);

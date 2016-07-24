@@ -3,7 +3,7 @@
 #include "IRC.h"
 #include "Util.h"
 
-IRC::ParsedLine IRC::parse(string s) {
+IRC::ParsedLine IRC::parse(std::string s) {
     IRC::ParsedLine p;
 
     // Prefix
@@ -38,7 +38,7 @@ IRC::ParsedLine IRC::parse(string s) {
 }
 
 
-IRC::Connection::Connection(string _host, unsigned short _port, json config) {
+IRC::Connection::Connection(std::string _host, unsigned short _port, json config) {
     this->host = _host;
     this->port = _port;
     this->config = config;
@@ -54,19 +54,19 @@ IRC::Connection::Connection(string _host, unsigned short _port, json config) {
 
 void IRC::Connection::connect() {
     this->socket = new TCPSocket(host, port);
-    cout << "Connected" << endl;
-    cout << socket->getLocalAddress() << endl;
+    std::cout << "Connected" << std::endl;
+    std::cout << socket->getLocalAddress() << std::endl;
     send("NICK " + nick);
-    cmd("USER", new vector<string> {user, "3", "*", realname});
+    cmd("USER", new std::vector<std::string> {user, "3", "*", realname});
 }
 
-void IRC::Connection::send(string s) {
-    cout << s << endl;
+void IRC::Connection::send(std::string s) {
+    std::cout << s << std::endl;
     socket->send((s + "\r\n").c_str(), s.length() + 2);
 }
 
 IRC::Connection::~Connection() {
-    cout << "Destructor" << endl;
+    std::cout << "Destructor" << std::endl;
     send("QUIT :Shutting Down.");
     delete(this->socket);
 }
@@ -76,7 +76,7 @@ void IRC::Connection::readLoop() {
     int bytesReceived;
     while (true) {
         if ((bytesReceived = (socket->recv(dataBuffer, RCVBUFSIZE))) <= 0) {
-            cerr << "Unable to read";
+            std::cerr << "Unable to read";
             return;
         }
         dataBuffer[bytesReceived] = '\0';        // Terminate the string!
@@ -86,13 +86,13 @@ void IRC::Connection::readLoop() {
 
 void IRC::Connection::dataReceived(const char *buffer) {
     inputBuffer.append(buffer);
-    string line;
+    std::string line;
     unsigned long pos;
 
-    while ((pos = inputBuffer.find("\r\n")) != string::npos) {
+    while ((pos = inputBuffer.find("\r\n")) != std::string::npos) {
         line = inputBuffer.substr(0, pos);
         inputBuffer = inputBuffer.substr(pos + 2);
-        cout << line << endl;
+        std::cout << line << std::endl;
         ParsedLine pLine = parse(line);
         if (pLine.cmd == "PING")
         {
@@ -105,15 +105,15 @@ void IRC::Connection::dataReceived(const char *buffer) {
 
 void IRC::Connection::process(ParsedLine line) {
     if (line.cmd == "004") {
-        cout << "Connected!!" << endl;
-        cmd("MODE", new vector<string> {nick, "+x"});
+        std::cout << "Connected!!" << std::endl;
+        cmd("MODE", new std::vector<std::string> {nick, "+x"});
 
         if (_useNickServ)
             msg("NICKSERV", "IDENTIFY " + ns_user + " " + ns_pass);
-        this_thread::sleep_for(chrono::milliseconds(500));
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
-        for (string chan : config["channels"]) {
-            cmd("JOIN", new vector<string> {chan});
+        for (std::string chan : config["channels"]) {
+            cmd("JOIN", new std::vector<std::string> {chan});
         }
     } else if (line.cmd == "PRIVMSG") {
         if (line.params[line.params.size() - 1].substr(1) == "-~=quit") {
@@ -122,15 +122,15 @@ void IRC::Connection::process(ParsedLine line) {
     }
 }
 
-void IRC::Connection::setNick(string _nick) {
+void IRC::Connection::setNick(std::string _nick) {
     nick = _nick;
 }
 
-void IRC::Connection::setUser(string _user) {
+void IRC::Connection::setUser(std::string _user) {
     user = _user;
 }
 
-void IRC::Connection::setRealname(string _realname) {
+void IRC::Connection::setRealname(std::string _realname) {
     realname = _realname;
 }
 
@@ -138,15 +138,15 @@ void IRC::Connection::useNickServ(bool b) {
     _useNickServ = b;
 }
 
-void IRC::Connection::setNickServUser(string ns_user) {
+void IRC::Connection::setNickServUser(std::string ns_user) {
     this->ns_user = ns_user;
 }
 
-void IRC::Connection::setNickServPass(string pass) {
+void IRC::Connection::setNickServPass(std::string pass) {
     this->ns_pass = pass;
 }
 
-void IRC::Connection::cmd(string cmd, vector<string> *args) {
+void IRC::Connection::cmd(std::string cmd, std::vector<std::string> *args) {
     if (args->size() > 0) {
         for (int i = 0; i < args->size(); i++) {
             cmd += " ";
@@ -159,14 +159,14 @@ void IRC::Connection::cmd(string cmd, vector<string> *args) {
     delete args;
 }
 
-void IRC::Connection::msg(string target, string msg) {
-    cmd("PRIVMSG", new vector<string> {target, msg});
+void IRC::Connection::msg(std::string target, std::string msg) {
+    cmd("PRIVMSG", new std::vector<std::string> {target, msg});
 }
 
 void IRC::Connection::shutdown() {
     shutdown("Bye!");
 }
 
-void IRC::Connection::shutdown(string s) {
-    cmd("QUIT", new vector<string> {s});
+void IRC::Connection::shutdown(std::string s) {
+    cmd("QUIT", new std::vector<std::string> {s});
 }
