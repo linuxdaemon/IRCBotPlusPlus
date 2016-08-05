@@ -5,6 +5,7 @@
 #include <vector>
 #include <nlohmann/json.hpp>
 #include "PracticalSocket.h"
+
 using json = nlohmann::json;
 
 //using namespace std;
@@ -16,11 +17,29 @@ namespace IRC {
         std::vector<std::string> params;
     };
 
+    struct CommandLine : ParsedLine {
+        std::string command = "";
+        std::vector<std::string> args;
+        std::string channel;
+    };
+
     ParsedLine parse(std::string s);
+
+    class Connection;
+
+    class Bot {
+    public:
+        Bot(json config);
+        bool run();
+
+    private:
+        json config;
+        std::vector<IRC::Connection> connections;
+    };
 
     class Connection {
     public:
-        Connection(std::string _host, unsigned short _port, json config);
+        Connection(std::string _host, unsigned short _port, json config, IRC::Bot *bot);
 
         ~Connection();
 
@@ -49,9 +68,14 @@ namespace IRC {
 
         void process(ParsedLine line);
 
+        bool parseMessage(ParsedLine line, CommandLine &out);
+
+        void handleCommand(CommandLine line);
+
         TCPSocket *socket;
 
     private:
+        void log(std::string s);
         const int RCVBUFSIZE = 1024;
         std::string host;
         unsigned short port;
@@ -64,6 +88,9 @@ namespace IRC {
         std::string ns_user;
         std::string ns_pass;
         json config;
+        std::map<std::string, std::string> cmds;
+        IRC::Bot *bot;
+        bool connected = false;
     };
 }
 

@@ -6,7 +6,7 @@
 using json = nlohmann::json;
 
 int main(int argc, char *argv[]) {
-    if (argc != 2)
+    if (argc < 2)
     {
         std::cerr << "Invalid number of args" << std::endl;
         exit(1);
@@ -31,12 +31,16 @@ int main(int argc, char *argv[]) {
     json server = config["connections"][0];
 
     try {
+        if (argc >= 3)
+            config["connections"][0]["nick"] = argv[2];
         // Establish connection with the server
-        IRC::Connection conn(server["connection"]["host"], server["connection"]["port"], server);
-        std::cout << "Connecting" << std::endl;
-        conn.connect();
-        std::cout << "connected " << conn.socket->getLocalAddress() << std::endl;
-        conn.readLoop();
+        IRC::Bot bot(config);
+        bot.run();
+        //IRC::Connection conn(server["connection"]["host"], server["connection"]["port"], server);
+        //std::cout << "Connecting" << std::endl;
+        //conn.connect();
+        //std::cout << "connected " << conn.socket->getForeignAddress() << std::endl;
+        //conn.readLoop();
 
         std::cout << std::endl;
 
