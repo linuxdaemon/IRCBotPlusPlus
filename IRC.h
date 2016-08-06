@@ -5,14 +5,23 @@
 #include <vector>
 #include <nlohmann/json.hpp>
 #include "PracticalSocket.h"
+#include "Module.h"
 
 using json = nlohmann::json;
 
 //using namespace std;
 
 namespace IRC {
+    // TODO add servername handling
+    struct Prefix {
+        std::string nick = "";
+        std::string user = "";
+        std::string host = "";
+        std::string mask = "";
+    };
+
     struct ParsedLine {
-        std::string prefix = "";
+        IRC::Prefix prefix;
         std::string cmd = "";
         std::vector<std::string> params;
     };
@@ -25,7 +34,13 @@ namespace IRC {
 
     ParsedLine parse(std::string s);
 
+    bool parsePrefix(std::string s, Prefix &p);
+
+    bool parseMessage(ParsedLine line, CommandLine &out);
+
     class Connection;
+
+    class Module;
 
     class Bot {
     public:
@@ -68,17 +83,27 @@ namespace IRC {
 
         void process(ParsedLine line);
 
-        bool parseMessage(ParsedLine line, CommandLine &out);
-
         void handleCommand(CommandLine line);
 
         TCPSocket *socket;
 
-    private:
         void log(std::string s);
+
+        void registerModule(Module *mod);
+
+        void SendNextCap();
+
+        void PauseCap();
+
+        void ResumeCap();
+
+    private:
+        unsigned int capPaused = 0;
+        std::vector<IRC::Module *> modules;
         const int RCVBUFSIZE = 1024;
         std::string host;
         unsigned short port;
+        std::vector<std::string> capQueue;
         std::string inputBuffer;
 
         std::string nick;

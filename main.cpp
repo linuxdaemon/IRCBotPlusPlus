@@ -36,11 +36,6 @@ int main(int argc, char *argv[]) {
         // Establish connection with the server
         IRC::Bot bot(config);
         bot.run();
-        //IRC::Connection conn(server["connection"]["host"], server["connection"]["port"], server);
-        //std::cout << "Connecting" << std::endl;
-        //conn.connect();
-        //std::cout << "connected " << conn.socket->getForeignAddress() << std::endl;
-        //conn.readLoop();
 
         std::cout << std::endl;
 
